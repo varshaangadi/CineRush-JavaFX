@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run JavaFX",
+            "request": "launch",
+            "mainClass": "MovieTicketBooking",
+            "vmArgs": "--module-path \"C:/Users/Mahesh Angadi/Downloads/coursera/javafx-sdk-21.0.10/lib\" --add-modules javafx.controls,javafx.fxml"
+        }
+    ]
+}
