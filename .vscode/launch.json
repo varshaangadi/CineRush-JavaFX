@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "src.Main",
+            "projectName": "MovieTicketBookings_141a489"
+        },
+        {
+            "type": "java",
             "name": "Run JavaFX",
             "request": "launch",
             "mainClass": "MovieTicketBooking",
