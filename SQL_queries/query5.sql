@@ -1,0 +1,4 @@
+ALTER TABLE bookings
+ADD COLUMN booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+SELECT * FROM bookings;
+SELECT * FROM bookings;

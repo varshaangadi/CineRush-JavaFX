@@ -1,0 +1,9 @@
+*.class
+
+.vscode/
+
+desktop.ini
+
+bin/
+
+out/

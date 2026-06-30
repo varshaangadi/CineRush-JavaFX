@@ -17,100 +17,25 @@ import javafx.util.Duration;
 import java.util.*;
 import java.io.*;
 
+import src.database.MovieDAO;
+import src.model.Movie;
+
+import src.database.BookingDAO;
+
+import src.database.UserDAO;
+import src.model.User;
+
+import src.api.TMDBService;
+
+import java.awt.Desktop;
+import java.net.URI;
+
 public class MovieTicketBooking extends Application {
 
     // ── Movie Data ─────────────────────────────────────────────────────────
-    static class Movie {
-        String title, rating, lang, genre, duration, desc, imageUrl, bannerColor;
-        String[] languages; // for filtering
-
-        Movie(String t, String r, String l, String g, String dur, String d, String img, String bc, String... langs) {
-            title = t;
-            rating = r;
-            lang = l;
-            genre = g;
-            duration = dur;
-            desc = d;
-            imageUrl = img;
-            bannerColor = bc;
-            languages = langs;
-        }
-    }
 
     // ── All Movies (Now Showing + filtered sets) ───────────────────────────
-    static final Movie[] ALL_MOVIES = {
-            // ── Now Showing (default) ─────────────────────────────────────────
-            new Movie("Dhurandhar 2", "A", "Hindi, Tamil, Telugu", "Action / Thriller", "2h 28m",
-                    "A legendary outlaw rises from the ashes to claim what's rightfully his, leaving a blazing trail of vengeance.",
-                    "file:dhurandhar2.jpeg", "#c0392b", "Hindi", "Tamil", "Telugu"),
-            new Movie("Project Hail Mary", "UA13+", "English", "Sci-Fi / Adventure", "2h 15m",
-                    "One man, alone in deep space, must save humanity — with only an alien friend by his side.",
-                    "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=300&q=80", "#2980b9", "English"),
-            new Movie("Dacoit", "UA13+", "Telugu, Hindi", "Crime / Drama", "2h 5m",
-                    "A ruthless gang wreaks havoc across the heartland until a lone cop decides enough is enough.",
-                    "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=300&q=80", "#8e44ad", "Telugu",
-                    "Hindi"),
-            new Movie("Vaazha II: Biopic of a Billion Bros", "UA13+", "Malayalam", "Drama / Comedy", "2h 20m",
-                    "The billion-bro sequel is back — louder, wilder, and more chaotic than ever before.",
-                    "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300&q=80", "#e67e22", "Malayalam"),
-            new Movie("Interstellar Returns", "U", "English, Hindi", "Sci-Fi / Epic", "2h 49m",
-                    "Beyond the black hole, beyond time — humanity's last hope travels where no one has returned from.",
-                    "https://images.unsplash.com/photo-1464802686167-b939a6910659?w=300&q=80", "#16a085", "English",
-                    "Hindi"),
-
-            // ── English / Marvel Movies ────────────────────────────────────────
-            new Movie("Avengers: Doomsday", "UA13+", "English", "Action / Superhero", "2h 55m",
-                    "The Avengers assemble one final time as Doctor Doom reshapes reality itself in a bid for total domination.",
-                    "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=300&q=80", "#b22222", "English"),
-            new Movie("Spider-Man: Brand New Day", "UA13+", "English", "Action / Adventure", "2h 10m",
-                    "Peter Parker swings back into action as a mysterious new villain threatens the entire multiverse.",
-                    "https://images.unsplash.com/photo-1509343256512-d77a5cb3791b?w=300&q=80", "#e74c3c", "English"),
-            new Movie("Thor: God of Thunder", "UA13+", "English", "Action / Fantasy", "2h 18m",
-                    "Thor must reclaim Mjolnir and rally ancient gods before a celestial darkness consumes all nine realms.",
-                    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&q=80", "#1a5276", "English"),
-            new Movie("Black Panther: Wakanda Forever II", "UA13+", "English", "Action / Drama", "2h 40m",
-                    "Wakanda faces a new threat from the depths of the ocean as a rival kingdom rises with devastating power.",
-                    "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=300&q=80", "#6c3483", "English"),
-            new Movie("Guardians of the Galaxy Vol. 4", "UA13+", "English", "Action / Comedy", "2h 22m",
-                    "Star-Lord and his ragtag crew embark on their most emotional mission yet to save one of their own.",
-                    "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=300&q=80", "#117a65", "English"),
-            new Movie("Doctor Strange: Multiverse War", "UA13+", "English", "Fantasy / Sci-Fi", "2h 30m",
-                    "Strange battles rogue sorcerers across a thousand dimensions as the very fabric of magic tears apart.",
-                    "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=300&q=80", "#1f618d", "English"),
-
-            // ── Hindi Movies ──────────────────────────────────────────────────
-            new Movie("Singham Returns 2", "A", "Hindi", "Action / Masala", "2h 35m",
-                    "ACP Bajirao Singham storms back, taking on a criminal empire that has infiltrated the highest corridors of power.",
-                    "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&q=80", "#c0392b", "Hindi"),
-            new Movie("Stree 3", "UA13+", "Hindi", "Horror / Comedy", "2h 12m",
-                    "The legend of Stree returns — scarier, funnier, and more chaotic than ever as she haunts a new town.",
-                    "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=300&q=80", "#6c3483", "Hindi"),
-            new Movie("Pathaan 2", "UA13+", "Hindi", "Spy / Thriller", "2h 45m",
-                    "India's most dangerous spy faces a rogue intelligence network that threatens to ignite World War III.",
-                    "https://images.unsplash.com/photo-1562408590-e32931084e23?w=300&q=80", "#1a5276", "Hindi"),
-            new Movie("Animal Park", "A", "Hindi", "Crime / Action", "2h 58m",
-                    "Ranvijay Singh returns fiercer than ever, waging a blood war that will define his brutal legacy forever.",
-                    "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=300&q=80", "#922b21", "Hindi"),
-            new Movie("Rocky aur Rani 2", "U", "Hindi", "Romance / Drama", "2h 20m",
-                    "Rocky and Rani navigate the joys and storms of married life while juggling two completely opposite families.",
-                    "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300&q=80", "#e67e22", "Hindi"),
-
-            // ── Tamil Movies ──────────────────────────────────────────────────
-            new Movie("Thalapathy 69", "UA13+", "Tamil", "Action / Drama", "2h 50m",
-                    "Vijay's most powerful role yet — a street-level hero who takes on systemic corruption with raw fury.",
-                    "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=300&q=80", "#2e86c1", "Tamil"),
-            new Movie("Coolie 2", "A", "Tamil, Telugu, Hindi", "Action / Thriller", "2h 35m",
-                    "Rajinikanth is unstoppable as a railway worker who hides a shocking past that changes everything.",
-                    "https://images.unsplash.com/photo-1533488765986-dfa2a9939acd?w=300&q=80", "#1a5276", "Tamil"),
-
-            // ── Malayalam Movies ───────────────────────────────────────────────
-            new Movie("Lucifer 3", "A", "Malayalam", "Crime / Thriller", "2h 45m",
-                    "Stephen Nedumpally returns to dismantle a global cartel that threatens the very soul of his homeland.",
-                    "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&q=80", "#117a65", "Malayalam"),
-            new Movie("Manjummel Boys 2", "UA13+", "Malayalam", "Adventure / Drama", "2h 15m",
-                    "A new group of friends face the ultimate survival test in the unforgiving wilderness of the Northeast.",
-                    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&q=80", "#138d75", "Malayalam"),
-    };
+    static ArrayList<Movie> ALL_MOVIES = MovieDAO.getAllMovies();
 
     // ── Seat Config ────────────────────────────────────────────────────────
     static final String[] ROWS = { "A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M" };
@@ -118,33 +43,30 @@ public class MovieTicketBooking extends Application {
             "STANDARD", "STANDARD", "STANDARD", "VALUE", "VALUE", "VALUE" };
     static final int[] PRICES = { 350, 350, 350, 350, 300, 220, 220, 220, 220, 150, 150, 150 };
     static final int COLS = 14;
-    static final Set<String> PRE_BOOKED = new HashSet<>(Arrays.asList(
-            "A3", "A7", "B2", "B9", "C5", "D11", "F4", "F8", "G6", "H1", "H14", "J7", "K3", "K10", "M5"));
 
     // ── State ──────────────────────────────────────────────────────────────
     Map<String, Button> seatButtons = new HashMap<>();
-    Set<String> bookedSeats = new HashSet<>(PRE_BOOKED);
+    Set<String> bookedSeats = new HashSet<>();
     Set<String> selectedSeats = new LinkedHashSet<>();
     Movie currentMovie = null;
     String currentTime = "";
     String activeFilter = "All"; // track active language filter
     String searchText = "";
     Stage primaryStage;
-    Map<String, String> users = new HashMap<>();
-    String loggedInUser = "";
+    // Map<String, String> users = new HashMap<>();
+    // String loggedInUser = "";
+    User loggedInUser = null;
 
-    final String USER_FILE = "users.txt";
-    final String BOOKING_FILE = "bookings.txt";
+    // final String USER_FILE = "users.txt";
+    // final String BOOKING_FILE = "bookings.txt";
 
     // ══════════════════════════════════════════════════════════════════════
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
         stage.setTitle("🎬 CineRush — Movie Ticket Booking");
-        loadUsers();
-        loadBookings();
+        // loadUsers();
         showLoginScreen();
-        ;
         stage.show();
     }
 
@@ -158,11 +80,57 @@ public class MovieTicketBooking extends Application {
         logo.setTextFill(Color.web("#f59e0b"));
 
         Label moviesTab = new Label("Movies");
+        Button myBookingsBtn = styledBtn(
+                "My Bookings",
+                "#22d3ee",
+                "#000000");
+
+        Button logoutBtn = styledBtn(
+                "Logout",
+                "#ef4444",
+                "#ffffff");
+
+        Button adminBtn = styledBtn(
+                "Admin Panel",
+                "#f59e0b",
+                "#000000");
+
+        adminBtn.setOnAction(e -> {
+            showAdminPanel();
+        });
+        if (!loggedInUser.getRole().equals("ADMIN")) {
+
+            adminBtn.setVisible(false);
+
+            adminBtn.setManaged(false);
+        }
+
+        logoutBtn.setOnAction(e -> {
+
+            loggedInUser = null;
+
+            showLoginScreen();
+        });
+
+        myBookingsBtn.setOnAction(e -> {
+            showMyBookingsScreen();
+        });
         moviesTab.setFont(Font.font("Arial", FontWeight.BOLD, 15));
         moviesTab.setTextFill(Color.WHITE);
         moviesTab.setStyle("-fx-border-color: #f59e0b; -fx-border-width: 0 0 2 0; -fx-padding: 0 0 4 0;");
 
-        HBox header = new HBox(30, logo, moviesTab);
+        Region spacer = new Region();
+
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(
+                30,
+                logo,
+                moviesTab,
+                spacer,
+                myBookingsBtn,
+                adminBtn,
+                logoutBtn);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(14, 24, 14, 24));
         header.setStyle("-fx-background-color: #1a1a2e; -fx-border-color: #333333; -fx-border-width: 0 0 1 0;");
@@ -175,7 +143,10 @@ public class MovieTicketBooking extends Application {
         filterRow.setAlignment(Pos.CENTER_LEFT);
 
         // Movie Grid (will be rebuilt on filter change)
-        FlowPane movieGrid = new FlowPane(16, 16);
+        FlowPane movieGrid = new FlowPane();
+        movieGrid.setHgap(24);
+        movieGrid.setVgap(28);
+
         movieGrid.setPadding(new Insets(0, 24, 24, 24));
         movieGrid.setStyle("-fx-background-color: #111111;");
 
@@ -185,12 +156,13 @@ public class MovieTicketBooking extends Application {
         searchField.setPrefWidth(250);
 
         searchField.setStyle(
+
                 "-fx-background-color: #1a1a2e;" +
                         "-fx-text-fill: white;" +
                         "-fx-prompt-text-fill: #777777;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-padding: 8 12 8 12;" +
-                        "-fx-font-size: 13;");
+                        "-fx-background-radius: 14;" +
+                        "-fx-font-size: 14;" +
+                        "-fx-padding: 12;");
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> {
             searchText = newVal.toLowerCase();
@@ -263,17 +235,19 @@ public class MovieTicketBooking extends Application {
 
         for (Movie m : ALL_MOVIES) {
             boolean show = false;
-            if (filter.equals("All") || filter.equals("New Releases")) {
+
+            if (filter.equals("All")) {
                 show = true;
+            } else if (filter.equals("New Releases")) {
+                show = m.isNewRelease();
             } else {
-                for (String lang : m.languages) {
-                    if (lang.equals(filter)) {
-                        show = true;
-                        break;
-                    }
+                if (m.getLanguage()
+                        .toLowerCase()
+                        .contains(filter.toLowerCase())) {
+                    show = true;
                 }
             }
-            boolean matchesSearch = m.title.toLowerCase().contains(searchText);
+            boolean matchesSearch = m.getTitle().toLowerCase().contains(searchText);
 
             if (show && matchesSearch) {
                 grid.getChildren().add(createMovieCard(m));
@@ -283,33 +257,60 @@ public class MovieTicketBooking extends Application {
 
     VBox createMovieCard(Movie m) {
         ImageView img = new ImageView();
-        img.setFitWidth(170);
-        img.setFitHeight(220);
+        img.setFitWidth(210);
+
+        img.setFitHeight(300);
         img.setPreserveRatio(false);
+        img.setSmooth(true);
+        img.setCache(true);
+
+        Rectangle clip = new Rectangle(
+                210,
+                300);
+
+        clip.setArcWidth(20);
+        clip.setArcHeight(20);
+        img.setClip(clip);
+
         try {
-            img.setImage(new Image(m.imageUrl, 170, 220, false, true, true));
+            if (m.getPosterUrl() != null &&
+                    !m.getPosterUrl().isEmpty()) {
+
+                img.setImage(
+                        new Image(
+                                m.getPosterUrl(),
+                                210,
+                                300,
+                                false,
+                                true,
+                                true));
+            }
         } catch (Exception e) {
-            // fallback
+            img.setImage(
+                    new Image(
+                            "C:/Users/Mahesh Angadi/Downloads/coursera/COLLEGE/oosd/MovieTicketBookings/images/poster.jpg",
+                            210, 300, false, true, true));
         }
         img.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 10, 0, 0, 4);");
 
-        Label genreTag = new Label(m.genre);
-        genreTag.setStyle("-fx-background-color: " + m.bannerColor
+        Label genreTag = new Label(m.getGenre());
+        genreTag.setStyle("-fx-background-color: " + "#f59e0b"
                 + "; -fx-text-fill: white; -fx-font-size: 10; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 20;");
 
         StackPane thumbPane = new StackPane(img, genreTag);
         StackPane.setAlignment(genreTag, Pos.BOTTOM_LEFT);
         StackPane.setMargin(genreTag, new Insets(0, 0, 8, 8));
-        thumbPane.setPrefSize(170, 220);
+        thumbPane.setPrefSize(210, 300);
         thumbPane.setStyle("-fx-background-color: #2a2a2a;");
 
-        Label titleLbl = new Label(m.title);
+        Label titleLbl = new Label(m.getTitle());
         titleLbl.setTextFill(Color.WHITE);
         titleLbl.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         titleLbl.setWrapText(true);
-        titleLbl.setMaxWidth(160);
+        titleLbl.setMaxWidth(190);
+        titleLbl.setMinHeight(55);
 
-        Label metaLbl = new Label(m.rating + " | " + m.lang.split(",")[0]);
+        Label metaLbl = new Label(m.getRating() + " | " + m.getLanguage().split(",")[0]);
         metaLbl.setTextFill(Color.web("#888888"));
         metaLbl.setFont(Font.font("Arial", 11));
 
@@ -318,24 +319,38 @@ public class MovieTicketBooking extends Application {
 
         VBox card = new VBox(thumbPane, info);
         card.setStyle(
-                "-fx-background-color: #1a1a1a; -fx-border-color: #333333; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
-        card.setPrefWidth(170);
+
+                "-fx-background-color: #141414;" +
+                        "-fx-background-radius: 18;" +
+                        "-fx-border-radius: 18;" +
+                        "-fx-border-color: #2a2a2a;" +
+                        "-fx-border-width: 1;");
+        card.setPrefWidth(210);
 
         card.setOnMouseEntered(e -> {
             ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
             st.setToX(1.04);
             st.setToY(1.04);
             st.play();
-            card.setStyle("-fx-background-color: #222222; -fx-border-color: " + m.bannerColor
-                    + "; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
+            card.setStyle(
+                    "-fx-background-color: #1b1b1b;" +
+                            "-fx-background-radius: 18;" +
+                            "-fx-border-radius: 18;" +
+                            "-fx-border-color: #f59e0b;" +
+                            "-fx-border-width: 2;");
         });
+
         card.setOnMouseExited(e -> {
             ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
             st.setToX(1.0);
             st.setToY(1.0);
             st.play();
             card.setStyle(
-                    "-fx-background-color: #1a1a1a; -fx-border-color: #333333; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
+                    "-fx-background-color: #141414;" +
+                            "-fx-background-radius: 18;" +
+                            "-fx-border-radius: 18;" +
+                            "-fx-border-color: #2a2a2a;" +
+                            "-fx-border-width: 1;");
         });
         card.setOnMouseClicked(e -> showMovieDetail(m));
 
@@ -352,50 +367,103 @@ public class MovieTicketBooking extends Application {
         backBtn.setOnAction(e -> showHomeScreen());
 
         ImageView poster = new ImageView();
-        poster.setFitWidth(160);
-        poster.setFitHeight(220);
+        poster.setFitWidth(240);
+        poster.setFitHeight(340);
+        poster.setSmooth(true);
+        poster.setCache(true);
+        Rectangle posterClip = new Rectangle(
+                240,
+                340);
+        posterClip.setArcWidth(24);
+        posterClip.setArcHeight(24);
+        poster.setClip(posterClip);
         poster.setPreserveRatio(false);
         try {
-            poster.setImage(new Image(m.imageUrl, 160, 220, false, true, true));
-        } catch (Exception ignored) {
+
+            if (m.getPosterUrl() != null &&
+                    !m.getPosterUrl().isEmpty()) {
+
+                poster.setImage(
+                        new Image(
+                                m.getPosterUrl(),
+                                240,
+                                340,
+                                false,
+                                true,
+                                true));
+            }
+
+        } catch (Exception e) {
+
+            poster.setImage(
+                    new Image(
+                            "C:/Users/Mahesh Angadi/Downloads/coursera/COLLEGE/oosd/MovieTicketBookings/images/poster.jpg",
+                            240, 340, false, true, true));
         }
         poster.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 20, 0, 0, 8);");
 
-        Label genrePill = new Label("  " + m.genre + "  ");
-        genrePill.setStyle("-fx-background-color: " + m.bannerColor
+        Label genrePill = new Label("  " + m.getGenre() + "  ");
+        genrePill.setStyle("-fx-background-color: " + "#f59e0b"
                 + "; -fx-text-fill: white; -fx-font-size: 11; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 4 12 4 12;");
 
-        Label titleLbl = new Label(m.title);
-        titleLbl.setFont(Font.font("Arial Black", FontWeight.EXTRA_BOLD, 28));
+        Label titleLbl = new Label(m.getTitle());
+        titleLbl.setFont(Font.font("Arial Black", FontWeight.EXTRA_BOLD, 34));
         titleLbl.setTextFill(Color.WHITE);
         titleLbl.setWrapText(true);
         titleLbl.setMaxWidth(500);
 
-        Label subLbl = new Label(m.rating + "  |  " + m.lang + "  |  " + m.duration);
+        Label subLbl = new Label(m.getRating() + "  |  " + m.getLanguage() + "  |  " + m.getDuration());
         subLbl.setTextFill(Color.web("#aaaaaa"));
         subLbl.setFont(Font.font("Arial", 13));
 
-        Label descLbl = new Label(m.desc);
+        Label descLbl = new Label(m.getDescription());
         descLbl.setTextFill(Color.web("#cccccc"));
         descLbl.setFont(Font.font("Arial", 13));
         descLbl.setWrapText(true);
-        descLbl.setMaxWidth(500);
+        descLbl.setMaxWidth(560);
 
         Label ratingLbl = new Label("★★★★☆  8.2 / 10");
-        ratingLbl.setStyle("-fx-text-fill: " + m.bannerColor + "; -fx-font-size: 16; -fx-font-weight: bold;");
+        ratingLbl.setStyle("-fx-text-fill: " + "#f59e0b" + "; -fx-font-size: 16; -fx-font-weight: bold;");
 
-        VBox metaBox = new VBox(10, genrePill, titleLbl, subLbl, descLbl, ratingLbl);
+        Button trailerBtn = styledBtn(
+                "▶ Watch Trailer",
+                "#e11d48",
+                "#ffffff");
+
+        trailerBtn.setOnAction(e -> {
+
+            try {
+
+                String searchUrl =
+
+                        "https://www.youtube.com/results?search_query=" +
+
+                                m.getTitle().replace(" ", "+") +
+
+                                "+official+trailer";
+
+                Desktop.getDesktop().browse(
+
+                        new URI(searchUrl));
+
+            } catch (Exception ex) {
+
+                ex.printStackTrace();
+            }
+        });
+
+        VBox metaBox = new VBox(10, genrePill, titleLbl, subLbl, descLbl, ratingLbl, trailerBtn);
         metaBox.setAlignment(Pos.TOP_LEFT);
 
-        HBox heroBox = new HBox(28, poster, metaBox);
+        HBox heroBox = new HBox(48, poster, metaBox);
         heroBox.setAlignment(Pos.CENTER_LEFT);
         heroBox.setPadding(new Insets(20, 28, 24, 28));
-        heroBox.setStyle("-fx-background-color: linear-gradient(to bottom, " + m.bannerColor + "88, #0a0a0a);");
+        heroBox.setStyle("-fx-background-color: linear-gradient(to bottom, " + "#f59e0b" + "88, #0a0a0a);");
 
         VBox headerArea = new VBox(0);
         HBox topBar = new HBox(backBtn);
         topBar.setPadding(new Insets(12, 28, 0, 28));
-        topBar.setStyle("-fx-background-color: " + m.bannerColor + "88;");
+        topBar.setStyle("-fx-background-color: " + "#f59e0b" + "88;");
         headerArea.getChildren().addAll(topBar, heroBox);
 
         Label showLabel = new Label("🕐  Select Showtime");
@@ -461,16 +529,23 @@ public class MovieTicketBooking extends Application {
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // SEAT SELECTION SCREEN
+    // SEAT SELECTION SCREENs
     // ══════════════════════════════════════════════════════════════════════
     void showSeatScreen() {
         seatButtons.clear();
         selectedSeats.clear();
 
+        // bookedSeats.clear();
+
+        bookedSeats = new HashSet<>(
+                BookingDAO.getBookedSeats(
+                        currentMovie.getTitle(),
+                        currentTime));
+
         Button backBtn = styledBtn("← Back", "#333333", "#ffffff");
         backBtn.setOnAction(e -> showMovieDetail(currentMovie));
 
-        Label movieLbl = new Label(currentMovie.title);
+        Label movieLbl = new Label(currentMovie.getTitle());
         movieLbl.setFont(Font.font("Arial Black", FontWeight.BOLD, 15));
         movieLbl.setTextFill(Color.WHITE);
         Label subLbl = new Label("🕐 " + currentTime + "   |   Screen 5");
@@ -719,6 +794,15 @@ public class MovieTicketBooking extends Application {
         netPane.setVisible(false);
         StackPane methodContent = new StackPane(cardPane, upiPane, netPane);
 
+        if (loggedInUser != null) {
+
+            firstName.setText(loggedInUser.getUsername());
+
+            email.setText(loggedInUser.getEmail());
+
+            phone.setText(loggedInUser.getPhone());
+        }
+
         cardBtn.setOnAction(e -> {
             cardPane.setVisible(true);
             upiPane.setVisible(false);
@@ -748,7 +832,24 @@ public class MovieTicketBooking extends Application {
             payNowBtn.setDisable(true);
             payNowBtn.setText("⏳ Processing Payment...");
             PauseTransition pause = new PauseTransition(Duration.seconds(2));
-            pause.setOnFinished(ev -> showTicketScreen(finalTotal));
+            // pause.setOnFinished(ev -> showTicketScreen(finalTotal));
+            pause.setOnFinished(ev -> {
+
+                for (String seat : selectedSeats) {
+
+                    BookingDAO.addBooking(
+
+                            currentMovie.getTitle(),
+                            currentTime,
+                            seat,
+                            loggedInUser.getUsername(),
+                            getSeatPrice(seat));
+                }
+                bookedSeats.addAll(selectedSeats);
+
+                showTicketScreen(finalTotal);
+
+            });
             pause.play();
         });
 
@@ -763,7 +864,7 @@ public class MovieTicketBooking extends Application {
         posterImg.setFitHeight(150);
         posterImg.setPreserveRatio(false);
         try {
-            posterImg.setImage(new Image(currentMovie.imageUrl, 240, 150, false, true, true));
+            posterImg.setImage(new Image(currentMovie.getPosterUrl(), 240, 150, false, true, true));
         } catch (Exception ignored) {
         }
 
@@ -771,7 +872,7 @@ public class MovieTicketBooking extends Application {
         ordTitle.setFont(Font.font("Arial Black", FontWeight.BOLD, 15));
         ordTitle.setTextFill(Color.web("#f59e0b"));
 
-        Label ordMovie = new Label(currentMovie.title);
+        Label ordMovie = new Label(currentMovie.getTitle());
         ordMovie.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         ordMovie.setTextFill(Color.WHITE);
         ordMovie.setWrapText(true);
@@ -842,27 +943,27 @@ public class MovieTicketBooking extends Application {
         tPoster.setFitHeight(130);
         tPoster.setPreserveRatio(false);
         try {
-            tPoster.setImage(new Image(currentMovie.imageUrl, 100, 130, false, true, true));
+            tPoster.setImage(new Image(currentMovie.getPosterUrl(), 100, 130, false, true, true));
         } catch (Exception ignored) {
         }
         tPoster.setStyle(
                 "-fx-border-color: #f59e0b; -fx-border-width: 3; -fx-border-radius: 8; -fx-background-radius: 8;");
 
-        Label tMovieName = new Label(currentMovie.title);
+        Label tMovieName = new Label(currentMovie.getTitle());
         tMovieName.setFont(Font.font("Arial Black", FontWeight.BOLD, 14));
         tMovieName.setTextFill(Color.WHITE);
         tMovieName.setWrapText(true);
         tMovieName.setMaxWidth(240);
 
-        Label tLang = new Label(currentMovie.lang.split(",")[0] + ", 2D");
-        tLang.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 12;");
+        Label tLanguage = new Label(currentMovie.getLanguage().split(",")[0] + ", 2D");
+        tLanguage.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 12;");
         Label tDate = new Label("📅 " + java.time.LocalDate.now() + "  |  🕐 " + currentTime);
         tDate.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 11;");
         Label tVenue = new Label("📍 PVR: Elan Miracle, Sec 84  |  Screen 5");
         tVenue.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 11;");
         tVenue.setWrapText(true);
 
-        VBox topSection = new VBox(8, shareRow, tPoster, tMovieName, tLang, tDate, tVenue);
+        VBox topSection = new VBox(8, shareRow, tPoster, tMovieName, tLanguage, tDate, tVenue);
         topSection.setAlignment(Pos.CENTER);
         topSection.setPadding(new Insets(20, 16, 16, 16));
         topSection.setStyle(
@@ -929,8 +1030,7 @@ public class MovieTicketBooking extends Application {
         homeBtn.setStyle(
                 "-fx-background-color: #1a1a2e; -fx-text-fill: #7dd3fc; -fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12; -fx-border-radius: 0 0 18 18; -fx-background-radius: 0 0 18 18; -fx-cursor: hand;");
         homeBtn.setOnAction(e -> {
-            bookedSeats.addAll(selectedSeats);
-            saveBookings();
+
             selectedSeats.clear();
             showHomeScreen();
         });
@@ -1030,6 +1130,12 @@ public class MovieTicketBooking extends Application {
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Password");
 
+        TextField emailField = new TextField();
+        emailField.setPromptText("Email");
+
+        TextField phoneField = new TextField();
+        phoneField.setPromptText("Phone Number");
+
         String fieldStyle = "-fx-background-color: #1a1a2e;" +
                 "-fx-text-fill: white;" +
                 "-fx-prompt-text-fill: #777777;" +
@@ -1039,6 +1145,9 @@ public class MovieTicketBooking extends Application {
 
         usernameField.setStyle(fieldStyle);
         passwordField.setStyle(fieldStyle);
+
+        emailField.setStyle(fieldStyle);
+        phoneField.setStyle(fieldStyle);
 
         Button loginBtn = new Button("Login");
         Button signupBtn = new Button("Signup");
@@ -1058,37 +1167,54 @@ public class MovieTicketBooking extends Application {
 
         loginBtn.setOnAction(e -> {
 
-            String user = usernameField.getText();
-            String pass = passwordField.getText();
+            String username = usernameField.getText();
+            String password = passwordField.getText();
 
-            if (users.containsKey(user) &&
-                    users.get(user).equals(pass)) {
+            User user = UserDAO.loginUser(
+                    username,
+                    password);
+
+            if (user != null) {
 
                 loggedInUser = user;
+
                 showHomeScreen();
 
             } else {
-                message.setText("Invalid username or password");
+
+                Alert alert = new Alert(
+                        Alert.AlertType.ERROR,
+                        "Invalid Username or Password");
+
+                alert.showAndWait();
             }
         });
 
         signupBtn.setOnAction(e -> {
 
-            String user = usernameField.getText();
-            String pass = passwordField.getText();
+            boolean success = UserDAO.registerUser(
 
-            if (user.isEmpty() || pass.isEmpty()) {
-                message.setText("Please fill all fields");
-                return;
-            }
+                    usernameField.getText(),
+                    passwordField.getText(),
+                    emailField.getText(),
+                    phoneField.getText());
 
-            if (users.containsKey(user)) {
-                message.setText("User already exists");
+            if (success) {
+
+                Alert alert = new Alert(
+                        Alert.AlertType.INFORMATION,
+                        "Registration Successful!");
+
+                alert.showAndWait();
+
+                showLoginScreen();
+
             } else {
-                users.put(user, pass);
-                saveUsers();
-                message.setTextFill(Color.LIGHTGREEN);
-                message.setText("Signup successful! Please login.");
+                Alert alert = new Alert(
+                        Alert.AlertType.ERROR,
+                        "Username already exists!");
+
+                alert.showAndWait();
             }
         });
 
@@ -1098,6 +1224,8 @@ public class MovieTicketBooking extends Application {
                 subtitle,
                 usernameField,
                 passwordField,
+                emailField,
+                phoneField,
                 loginBtn,
                 signupBtn,
                 message);
@@ -1113,72 +1241,415 @@ public class MovieTicketBooking extends Application {
         primaryStage.setScene(scene);
     }
 
-    void saveUsers() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(USER_FILE))) {
+    int calculateTotal() {
 
-            for (String user : users.keySet()) {
-                pw.println(user + "," + users.get(user));
-            }
+        int total = 0;
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+        for (String sid : selectedSeats) {
 
-    void loadUsers() {
+            String row = sid.replaceAll("\\d", "");
 
-        File file = new File(USER_FILE);
+            for (int i = 0; i < ROWS.length; i++) {
 
-        if (!file.exists())
-            return;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-
-            String line;
-
-            while ((line = br.readLine()) != null) {
-
-                String[] parts = line.split(",");
-
-                if (parts.length == 2) {
-                    users.put(parts[0], parts[1]);
+                if (ROWS[i].equals(row)) {
+                    total += PRICES[i];
+                    break;
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    void saveBookings() {
-
-    try (PrintWriter pw = new PrintWriter(new FileWriter(BOOKING_FILE))) {
-
-        for (String seat : bookedSeats) {
-            pw.println(seat);
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return total;
     }
-}
-void loadBookings() {
 
-    File file = new File(BOOKING_FILE);
+    int getSeatPrice(String seatId) {
 
-    if (!file.exists()) return;
+        String row = seatId.replaceAll("\\d", "");
 
-    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        for (int i = 0; i < ROWS.length; i++) {
 
-        String line;
+            if (ROWS[i].equals(row)) {
 
-        while ((line = br.readLine()) != null) {
-            bookedSeats.add(line);
+                return PRICES[i];
+            }
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return 0;
     }
-}
+
+    void showMyBookingsScreen() {
+
+        if (loggedInUser == null) {
+
+            showLoginScreen();
+
+            return;
+        }
+
+        Label title = new Label("🎟 My Bookings");
+
+        title.setFont(
+                Font.font(
+                        "Arial Black",
+                        FontWeight.BOLD,
+                        24));
+
+        title.setTextFill(Color.WHITE);
+
+        VBox bookingsBox = new VBox(18);
+
+        bookingsBox.setPadding(
+                new Insets(20));
+
+        ArrayList<String> bookings = BookingDAO.getBookingsByUser(
+                loggedInUser.getUsername());
+
+        if (bookings.isEmpty()) {
+
+            Label empty = new Label("No bookings yet.");
+
+            empty.setStyle(
+                    "-fx-text-fill: white;" +
+                            "-fx-font-size: 16;");
+
+            bookingsBox.getChildren()
+                    .add(empty);
+
+        } else {
+
+            for (String b : bookings) {
+
+                VBox card = new VBox(8);
+
+                card.setPadding(
+                        new Insets(18));
+
+                card.setStyle(
+                        "-fx-background-color: #1a1a2e;" +
+                                "-fx-background-radius: 16;" +
+                                "-fx-border-color: #22d3ee;" +
+                                "-fx-border-radius: 16;");
+
+                Label lbl = new Label(b);
+
+                lbl.setStyle(
+                        "-fx-text-fill: white;" +
+                                "-fx-font-size: 14;");
+
+                card.getChildren().add(lbl);
+
+                bookingsBox.getChildren()
+                        .add(card);
+            }
+        }
+
+        Button backBtn = styledBtn(
+                "← Back",
+                "#333333",
+                "#ffffff");
+
+        backBtn.setOnAction(e -> {
+            showHomeScreen();
+        });
+
+        VBox root = new VBox(
+                20,
+                backBtn,
+                title,
+                bookingsBox);
+
+        root.setPadding(
+                new Insets(20));
+
+        root.setStyle(
+                "-fx-background-color: #111111;");
+
+        ScrollPane sp = new ScrollPane(root);
+
+        sp.setFitToWidth(true);
+
+        Scene scene = new Scene(sp, 900, 620);
+
+        primaryStage.setScene(scene);
+    }
+
+    void showAdminPanel() {
+        if (loggedInUser == null ||
+                !loggedInUser.getRole().equals("ADMIN")) {
+
+            showHomeScreen();
+            return;
+        }
+        Label title = new Label("🛠 Admin Panel");
+
+        title.setFont(
+                Font.font(
+                        "Arial Black",
+                        FontWeight.BOLD,
+                        28));
+
+        title.setTextFill(Color.WHITE);
+
+        Button addMovieBtn = styledBtn(
+                "Add Movie",
+                "#22c55e",
+                "#ffffff");
+
+        Button editMovieBtn = styledBtn(
+                "Edit Movie",
+                "#3b82f6",
+                "#ffffff");
+
+        Button deleteMovieBtn = styledBtn(
+                "Delete Movie",
+                "#ef4444",
+                "#ffffff");
+
+        Button importBtn = styledBtn(
+                "Import Latest Movies",
+                "#22d3ee",
+                "#000000");
+
+        Button fixPostersBtn = styledBtn(
+
+                "Fix Missing Posters",
+                "#f59e0b",
+                "#000000");
+
+        fixPostersBtn.setOnAction(e -> {
+            TMDBService.updateMissingPosters();
+            Alert alert = new Alert(
+                    Alert.AlertType.INFORMATION,
+                    "Missing posters updated successfully!");
+            alert.showAndWait();
+        });
+
+        addMovieBtn.setMaxWidth(Double.MAX_VALUE);
+        editMovieBtn.setMaxWidth(Double.MAX_VALUE);
+        deleteMovieBtn.setMaxWidth(Double.MAX_VALUE);
+
+        addMovieBtn.setPrefHeight(55);
+        editMovieBtn.setPrefHeight(55);
+        deleteMovieBtn.setPrefHeight(55);
+
+        importBtn.setOnAction(e -> {
+
+            TMDBService.importNowPlayingMovies();
+            ALL_MOVIES = MovieDAO.getAllMovies();
+            showHomeScreen();
+            Alert alert = new Alert(
+                    Alert.AlertType.INFORMATION,
+                    "Movies Imported Successfully!");
+            alert.showAndWait();
+        });
+
+        addMovieBtn.setOnAction(e -> {
+            showAddMovieScreen();
+        });
+
+        VBox root = new VBox(
+                20,
+                title,
+                addMovieBtn,
+                editMovieBtn,
+                deleteMovieBtn,
+                fixPostersBtn,
+                importBtn);
+
+        root.setPadding(new Insets(30));
+
+        root.setAlignment(Pos.TOP_CENTER);
+
+        root.setStyle(
+                "-fx-background-color: #111111;");
+
+        Scene scene = new Scene(root, 900, 620);
+
+        primaryStage.setScene(scene);
+
+    }
+
+    void showAddMovieScreen() {
+        Label title = new Label("➕ Add Movie");
+
+        title.setFont(
+                Font.font(
+                        "Arial Black",
+                        FontWeight.BOLD,
+                        26));
+
+        title.setTextFill(Color.WHITE);
+
+        TextField titleField = new TextField();
+
+        titleField.setPromptText(
+                "Movie Title");
+
+        TextField genreField = new TextField();
+
+        genreField.setPromptText(
+                "Genre");
+
+        TextField languageField = new TextField();
+
+        languageField.setPromptText(
+                "Language");
+
+        TextField durationField = new TextField();
+
+        durationField.setPromptText(
+                "Duration");
+
+        TextField ratingField = new TextField();
+
+        ratingField.setPromptText(
+                "Rating");
+
+        TextField imdbField = new TextField();
+
+        imdbField.setPromptText(
+                "IMDb");
+
+        TextArea descriptionField = new TextArea();
+
+        descriptionField.setPromptText(
+                "Description");
+
+        TextField posterField = new TextField();
+
+        posterField.setPromptText(
+                "Poster URL");
+
+        TextField trailerField = new TextField();
+
+        trailerField.setPromptText(
+                "Trailer URL");
+
+        DatePicker releaseDateField = new DatePicker();
+
+        CheckBox newReleaseBox = new CheckBox("New Release");
+
+        newReleaseBox.setTextFill(
+                Color.WHITE);
+
+        String fieldStyle =
+
+                "-fx-background-color: #1a1a2e;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-prompt-text-fill: #888;" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-padding: 10;";
+
+        titleField.setStyle(fieldStyle);
+        genreField.setStyle(fieldStyle);
+        languageField.setStyle(fieldStyle);
+        durationField.setStyle(fieldStyle);
+        ratingField.setStyle(fieldStyle);
+        imdbField.setStyle(fieldStyle);
+        descriptionField.setStyle(fieldStyle);
+        posterField.setStyle(fieldStyle);
+        trailerField.setStyle(fieldStyle);
+
+        Button addBtn = styledBtn(
+                "Add Movie",
+                "#22c55e",
+                "#ffffff");
+
+        Button backBtn = styledBtn(
+                "← Back",
+                "#333333",
+                "#ffffff");
+
+        addBtn.setOnAction(e -> {
+
+            try {
+
+                Movie movie = new Movie(0,
+                        titleField.getText(),
+
+                        genreField.getText(),
+
+                        languageField.getText(),
+
+                        durationField.getText(),
+
+                        ratingField.getText(),
+
+                        Double.parseDouble(
+                                imdbField.getText()),
+
+                        descriptionField.getText(),
+
+                        posterField.getText(),
+
+                        trailerField.getText(),
+
+                        releaseDateField
+                                .getValue()
+                                .toString(),
+
+                        newReleaseBox.isSelected());
+
+                MovieDAO.addMovie(movie);
+
+                Alert alert = new Alert(
+                        Alert.AlertType.INFORMATION,
+                        "Movie Added Successfully!");
+
+                alert.showAndWait();
+                showAdminPanel();
+
+            } catch (Exception ex) {
+
+                ex.printStackTrace();
+
+                Alert alert = new Alert(
+                        Alert.AlertType.ERROR,
+                        "Invalid Movie Data");
+
+                alert.showAndWait();
+            }
+        });
+
+        backBtn.setOnAction(e -> {
+            showAdminPanel();
+        });
+
+        VBox root = new VBox(
+
+                15,
+
+                backBtn,
+                title,
+
+                titleField,
+                genreField,
+                languageField,
+                durationField,
+                ratingField,
+                imdbField,
+                descriptionField,
+                posterField,
+                trailerField,
+                releaseDateField,
+                newReleaseBox,
+
+                addBtn);
+
+        root.setPadding(
+                new Insets(25));
+
+        root.setStyle(
+                "-fx-background-color: #111111;");
+
+        ScrollPane sp = new ScrollPane(root);
+
+        sp.setFitToWidth(true);
+
+        Scene scene = new Scene(sp, 900, 620);
+
+        primaryStage.setScene(scene);
+
+    }
 
     public static void main(String[] args) {
         launch(args);
